@@ -74,10 +74,4 @@ def main():
             run.test(config)
 
 if __name__ == "__main__":
-    try:
-        main()
-    except:
-        import sys, pdb, traceback
-        type, value, tb = sys.exc_info()
-        traceback.print_exc()
-        pdb.post_mortem(tb)
+    main()

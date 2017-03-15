@@ -52,7 +52,8 @@ def rnn_forward(config, inputs, scope=None):
         emb_mat = tf.concat([tf.get_variable('emb_mat', shape=[2, d]), emb_mat], axis=0)
         xx = tf.nn.embedding_lookup(emb_mat, x, name='xx')  # [N, JX, d]
         qq = tf.nn.embedding_lookup(emb_mat, q, name='qq')  # [N, JQ, d]
-        cell = GRUCell(d)
+        cell = DropoutWrapper(
+            GRUCell(d), input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
 
         q_inputs = bool_mask(qq, q_mask, expand=True)
         x_inputs = bool_mask(xx, x_mask, expand=True)
