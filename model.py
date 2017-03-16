@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.contrib.rnn import DropoutWrapper
-from tensorflow.contrib.rnn import GRUCell
+from tensorflow.contrib.rnn import GRUCell, LSTMCell
 
 
 def cbow_forward(config, inputs, scope=None):
@@ -40,6 +40,27 @@ def cbow_forward(config, inputs, scope=None):
 
 
 def rnn_forward(config, inputs, scope=None):
+    cell_fw = cell_bw = DropoutWrapper(GRUCell(config.hidden_size),
+        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+    return bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope)
+def lstm_forward(config, inputs, scope=None):
+    cell_fw = cell_bw = DropoutWrapper(LSTMCell(config.hidden_size),
+        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+    return bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope)
+def lstm_fw_gru_bw(config, inputs, scope=None):
+    cell_fw = DropoutWrapper(LSTMCell(config.hidden_size),
+        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+    cell_bw = DropoutWrapper(GRUCell(config.hidden_size),
+        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+    return bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope)
+def gru_fw_lstm_bw(config, inputs, scope=None):
+    cell_fw = DropoutWrapper(GRUCell(config.hidden_size),
+        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+    cell_bw = DropoutWrapper(LSTMCell(config.hidden_size),
+        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+    return bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope)
+
+def bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope=None):
     with tf.variable_scope(scope or "forward"):
         JX, JQ = config.max_context_size, config.max_ques_size
         d = config.hidden_size
@@ -52,18 +73,16 @@ def rnn_forward(config, inputs, scope=None):
         emb_mat = tf.concat([tf.get_variable('emb_mat', shape=[2, d]), emb_mat], axis=0)
         xx = tf.nn.embedding_lookup(emb_mat, x, name='xx')  # [N, JX, d]
         qq = tf.nn.embedding_lookup(emb_mat, q, name='qq')  # [N, JQ, d]
-        cell = DropoutWrapper(
-            GRUCell(d), input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
 
         q_inputs = bool_mask(qq, q_mask, expand=True)
         x_inputs = bool_mask(xx, x_mask, expand=True)
         q_outputs, qo_ = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw=cell, cell_bw=cell, inputs=q_inputs,
+            cell_fw=cell_fw, cell_bw=cell_bw, inputs=q_inputs,
             sequence_length=q_len, dtype=tf.float32,
             scope="q_bidirectional_rnn") # q_outputs = [N, JQ, d]
         qo = tf.concat(list(q_outputs), axis=2) # [N, JQ, 2d]
         x_outputs, xo_ = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw=cell, cell_bw=cell, inputs=x_inputs,
+            cell_fw=cell_fw, cell_bw=cell_bw, inputs=x_inputs,
             sequence_length=x_len, dtype=tf.float32,
             scope="x_bidirectional_rnn") # x_outputs = [N, JX, d]
         xo = tf.concat(list(x_outputs), axis=2) # [N, JX, 2d]

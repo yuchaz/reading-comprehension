@@ -11,7 +11,8 @@ from tqdm import tqdm
 from data import SquadData
 from evaluation import SquadEvaluation
 from input_queue import InputQueue
-from model import cbow_forward, get_loss, rnn_forward, attention_forward
+# from model import cbow_forward, get_loss, rnn_forward, attention_forward, lstm_forward, lstm_fw_gru_bw, gru_fw_lstm_bw
+import model as md
 from tf_utils import average_gradients
 
 
@@ -77,11 +78,17 @@ class Run(object):
 
     def _pipeline(self, config, inputs):
         if config.model == 'cbow':
-            model_func = cbow_forward
+            model_func = md.cbow_forward
         elif config.model == 'rnn':
-            model_func = rnn_forward
+            model_func = md.rnn_forward
         elif config.model == 'att':
-            model_func = attention_forward
+            model_func = md.attention_forward
+        elif config.model == 'lstm':
+            model_func = md.lstm_forward
+        elif config.model == 'lstm_gru':
+            model_func = md.lstm_fw_gru_bw
+        elif config.model == 'gru_lstm':
+            model_func = md.gru_fw_lstm_bw
         else:
             raise NotImplementedError()
         self.variables, outputs = model_func(config, inputs)
