@@ -105,6 +105,16 @@ def bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope=None):
         return variables, outputs
 
 def attention_forward(config, inputs, scope=None):
+    cell_fw = cell_bw = DropoutWrapper(GRUCell(config.hidden_size),
+        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+    return attention_model(config, inputs, cell_fw, cell_bw, scope)
+
+def lstm_attention_forward(config, inputs, scope=None):
+    cell_fw = cell_bw = DropoutWrapper(LSTMCell(config.hidden_size),
+        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+    return attention_model(config, inputs, cell_fw, cell_bw, scope)
+
+def attention_model(config, inputs, cell_fw, cell_bw, scope=None):
     with tf.variable_scope(scope or "forward"):
         JX, JQ = config.max_context_size, config.max_ques_size
         d = config.hidden_size
@@ -131,18 +141,15 @@ def attention_forward(config, inputs, scope=None):
         b_attention = tf.Variable(tf.constant(0.1, shape=[1]), name="b_attention")
         p = tf.einsum('ijkl,lm->ijkm', attention,W_attention) + b_attention # [N, JX, JQ]
 
-        cell = DropoutWrapper(
-            GRUCell(d), input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
-
         q_inputs = bool_mask(qq, q_mask, expand=True)
         x_inputs = bool_mask(xx, x_mask, expand=True)
         q_outputs, qo_ = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw=cell, cell_bw=cell, inputs=q_inputs,
+            cell_fw=cell_fw, cell_bw=cell_bw, inputs=q_inputs,
             sequence_length=q_len, dtype=tf.float32,
             scope="q_bidirectional_rnn") # q_outputs = [N, JQ, d]
         qo = tf.concat(list(q_outputs), axis=2) # [N, JQ, 2d]
         x_outputs, xo_ = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw=cell, cell_bw=cell, inputs=x_inputs,
+            cell_fw=cell_fw, cell_bw=cell_bw, inputs=x_inputs,
             sequence_length=x_len, dtype=tf.float32,
             scope="x_bidirectional_rnn") # x_outputs = [N, JX, d]
         xo = tf.concat(list(x_outputs), axis=2) # [N, JX, 2d]

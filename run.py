@@ -79,16 +79,21 @@ class Run(object):
     def _pipeline(self, config, inputs):
         if config.model == 'cbow':
             model_func = md.cbow_forward
+
         elif config.model == 'rnn':
             model_func = md.rnn_forward
-        elif config.model == 'att':
-            model_func = md.attention_forward
         elif config.model == 'lstm':
             model_func = md.lstm_forward
         elif config.model == 'lstm_gru':
             model_func = md.lstm_fw_gru_bw
         elif config.model == 'gru_lstm':
             model_func = md.gru_fw_lstm_bw
+
+        elif config.model == 'att':
+            model_func = md.attention_forward
+        elif config.model == 'lstm_att':
+            model_func = md.lstm_attention_forward
+            
         else:
             raise NotImplementedError()
         self.variables, outputs = model_func(config, inputs)
