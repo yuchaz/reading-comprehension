@@ -93,13 +93,13 @@ class Run(object):
             model_func = md.attention_forward
         elif config.model == 'lstm_att':
             model_func = md.lstm_attention_forward
-            
+
         else:
             raise NotImplementedError()
         self.variables, outputs = model_func(config, inputs)
         loss, grads = None, None
         if config.supervised:
-            loss = get_loss(config, inputs, outputs)
+            loss = md.get_loss(config, inputs, outputs)
             if config.is_train:
                 grads = self.opt.compute_gradients(loss)
         return outputs, loss, grads

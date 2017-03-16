@@ -139,7 +139,7 @@ def attention_model(config, inputs, cell_fw, cell_bw, scope=None):
             tf.random_uniform([1, 3*d], -1.0, 1.0),
             name="W_attention")
         b_attention = tf.Variable(tf.constant(0.1, shape=[1]), name="b_attention")
-        p = tf.einsum('ijkl,lm->ijkm', attention,W_attention) + b_attention # [N, JX, JQ]
+        p = tf.einsum('ijkl,ml->ijk', attention,W_attention) + b_attention # [N, JX, JQ]
 
         q_inputs = bool_mask(qq, q_mask, expand=True)
         x_inputs = bool_mask(xx, x_mask, expand=True)
