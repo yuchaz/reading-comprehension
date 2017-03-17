@@ -1,2 +1,6 @@
 run.sh
 *.sh
+
+.ftpconfig
+
+__pycache__
