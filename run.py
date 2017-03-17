@@ -94,6 +94,9 @@ class Run(object):
         elif config.model == 'lstm_att':
             model_func = md.lstm_attention_forward
 
+        elif config.model == 'att2rnn':
+            model_func = md.attention_to_rnn_forward
+
         else:
             raise NotImplementedError()
         self.variables, outputs = model_func(config, inputs)
