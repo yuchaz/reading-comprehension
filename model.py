@@ -40,24 +40,28 @@ def cbow_forward(config, inputs, scope=None):
 
 
 def rnn_forward(config, inputs, scope=None):
+    dropout_keep_prob = config.keep_prob if config.train == True else 1
     cell_fw = cell_bw = DropoutWrapper(GRUCell(config.hidden_size),
-        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+        input_keep_prob=dropout_keep_prob, output_keep_prob=dropout_keep_prob)
     return bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope)
 def lstm_forward(config, inputs, scope=None):
+    dropout_keep_prob = config.keep_prob if config.train == True else 1
     cell_fw = cell_bw = DropoutWrapper(LSTMCell(config.hidden_size),
-        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+        input_keep_prob=dropout_keep_prob, output_keep_prob=dropout_keep_prob)
     return bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope)
 def lstm_fw_gru_bw(config, inputs, scope=None):
+    dropout_keep_prob = config.keep_prob if config.train == True else 1
     cell_fw = DropoutWrapper(LSTMCell(config.hidden_size),
-        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+        input_keep_prob=dropout_keep_prob, output_keep_prob=dropout_keep_prob)
     cell_bw = DropoutWrapper(GRUCell(config.hidden_size),
-        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+        input_keep_prob=dropout_keep_prob, output_keep_prob=dropout_keep_prob)
     return bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope)
 def gru_fw_lstm_bw(config, inputs, scope=None):
+    dropout_keep_prob = config.keep_prob if config.train == True else 1
     cell_fw = DropoutWrapper(GRUCell(config.hidden_size),
-        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+        input_keep_prob=dropout_keep_prob, output_keep_prob=dropout_keep_prob)
     cell_bw = DropoutWrapper(LSTMCell(config.hidden_size),
-        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+        input_keep_prob=dropout_keep_prob, output_keep_prob=dropout_keep_prob)
     return bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope)
 
 def bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope=None):
@@ -105,13 +109,15 @@ def bidirectional_rnn(config, inputs, cell_fw, cell_bw, scope=None):
         return variables, outputs
 
 def attention_forward(config, inputs, scope=None):
+    dropout_keep_prob = config.keep_prob if config.train == True else 1
     cell_fw = cell_bw = DropoutWrapper(GRUCell(config.hidden_size),
-        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+        input_keep_prob=dropout_keep_prob, output_keep_prob=dropout_keep_prob)
     return attention_model(config, inputs, cell_fw, cell_bw, scope)
 
 def lstm_attention_forward(config, inputs, scope=None):
+    dropout_keep_prob = config.keep_prob if config.train == True else 1
     cell_fw = cell_bw = DropoutWrapper(LSTMCell(config.hidden_size),
-        input_keep_prob=config.keep_prob, output_keep_prob=config.keep_prob)
+        input_keep_prob=dropout_keep_prob, output_keep_prob=dropout_keep_prob)
     return attention_model(config, inputs, cell_fw, cell_bw, scope)
 
 def attention_model(config, inputs, cell_fw, cell_bw, scope=None):
